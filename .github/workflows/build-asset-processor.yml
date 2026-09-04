@@ -1,51 +1,31 @@
-name: C++ Build and Test
+name: Build Targeted Asset Processor
 
 on:
-  push:
-    branches: [ "main", "master" ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.gitignore'
-  pull_request:
-    branches: [ "main", "master" ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.gitignore'
   workflow_dispatch:
 
-# Cancel older in-flight runs on the same branch or PR when new pushes occur
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  build:
-    runs-on: windows-latest
+  build-asset-processor:
+    runs-on: windows-2022
 
     steps:
-      # 1. Shallow clone to download only the latest commit
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          submodules: recursive
 
-      # 2. Setup MSBuild path environment
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
 
-      # 3. Enable sccache for C/C++ compiler caching across workflow runs
-      - name: Setup sccache
-        uses: mozilla/sccache-action@v0.0.8
-
-      - name: Configure environment variables
+      - name: Configure CMake
         run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $env:GITHUB_ENV
-          echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $env:GITHUB_ENV
-          echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $env:GITHUB_ENV
+          cmake -B build/windows -S . -G "Visual Studio 17 2022" -A x64
 
-      # 4. Build solution using multi-processor execution flags (/m)
-      - name: Build Project
+      - name: Build Asset Processor Target
         run: |
-          msbuild Code/Tools/AssetProcessor/AssetBuilder/AssetBuilder.vcxproj /p:Configuration=Release /m
+          cmake --build build/windows --target AssetProcessor --config profile -- -m
+
+      - name: Upload Asset Processor Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: O3DE-AssetProcessor-Windows
+          path: build/windows/bin/profile/
