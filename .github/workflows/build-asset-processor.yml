@@ -13,6 +13,7 @@ on:
       - '**.md'
       - 'docs/**'
       - '.gitignore'
+  workflow_dispatch:
 
 # Cancel older in-flight runs on the same branch or PR when new pushes occur
 concurrency:
