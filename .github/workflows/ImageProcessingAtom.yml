@@ -1,20 +1,27 @@
-name: Build ImageProcessingAtom
+name: Build ImageProcessingAtom.Editor
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
 
 jobs:
   build:
-    runs-on: windows-latest
+    name: Build Target
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up CMake
-        uses: jvmda/setup-cmake@v1
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.28.x'
 
-      - name: Configure CMake
-        run: cmake -B build -S .
+      - name: Configure project
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build Target
-        run: cmake --build "./build" --target ImageProcessingAtom.Editor
+      - name: Build target
+        run: cmake --build build --config Release --target ImageProcessingAtom.Editor
