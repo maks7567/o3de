@@ -1,0 +1,20 @@
+name: Build ImageProcessingAtom
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up CMake
+        uses: jvmda/setup-cmake@v1
+
+      - name: Configure CMake
+        run: cmake -B build -S .
+
+      - name: Build Target
+        run: cmake --build "./build" --target ImageProcessingAtom.Editor
